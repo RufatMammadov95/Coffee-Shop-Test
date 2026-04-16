@@ -10,6 +10,7 @@ import com.example.coffee_shop.observer.Customer;
 import com.example.coffee_shop.observer.Observer;
 
 public class Order {
+
 	private int orderId;
 	private Coffee coffee;
 	private double price;
@@ -21,8 +22,10 @@ public class Order {
 		this.orderId = orderId;
 		this.customer = customer;
 		this.coffee = coffee;
+
 		this.price = customer.getPricingStrategy().calculatePrice(coffee.getCost());
 		this.status = Status.PREPARING;
+
 		addObserver(customer);
 	}
 
@@ -41,7 +44,17 @@ public class Order {
 	}
 
 	public Order cloneOrder() {
-		return new Order(this.orderId, this.customer, this.coffee);
+
+		Coffee clonedCoffee = this.coffee;
+
+		Order cloned = new Order(this.orderId, this.customer, clonedCoffee);
+
+		cloned.observers = new ArrayList<>();
+		cloned.addObserver(this.customer);
+
+		cloned.status = this.status;
+
+		return cloned;
 	}
 
 	public String getFormattedPrice() {
@@ -69,9 +82,10 @@ public class Order {
 		return customer;
 	}
 
-	// Setters
+	// Setter
 	public void setStatus(Status status) {
 		this.status = status;
+
 		if (status == Status.READY) {
 			notifyObservers("Your order #" + orderId + " is ready!");
 		}

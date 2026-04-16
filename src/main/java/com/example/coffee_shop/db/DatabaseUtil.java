@@ -84,6 +84,20 @@ public class DatabaseUtil {
 
 		return history.toString();
 	}
+	public static void clear() {
+	    String sql1 = "DELETE FROM chat_history";
+	    String sql2 = "DELETE FROM uploaded_images";
+
+	    try (Connection conn = DriverManager.getConnection(URL);
+	         Statement stmt = conn.createStatement()) {
+
+	        stmt.executeUpdate(sql1);
+	        stmt.executeUpdate(sql2);
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
 
 	// OPTIONAL CONSOLE PRINT
 	public static void printChatHistory() {

@@ -13,85 +13,109 @@ import com.example.coffee_shop.thread.Barista;
 
 public class CoffeeShop {
 
-    private static CoffeeShop instance;
+	private static CoffeeShop instance;
 
-    private final OrderQueue orderQueue;
-    private final CoffeeFactory coffeeFactory;
+	private OrderQueue orderQueue;
+	private CoffeeFactory coffeeFactory;
 
-    private final AtomicInteger counter = new AtomicInteger(1);
+	private AtomicInteger counter;
 
-    private CoffeeShop() {
+	private CoffeeShop() {
+		init();
+	}
 
-        orderQueue = new OrderQueue();
-     
-        coffeeFactory = new CoffeeFactory();
+	private void init() {
+		orderQueue = new OrderQueue();
+		coffeeFactory = new CoffeeFactory();
+		counter = new AtomicInteger(1);
 
-        Thread b1 = new Thread(new Barista("Messi", this, 10));
-        Thread b2 = new Thread(new Barista("Ronaldo", this, 10));
+		Thread b1 = new Thread(new Barista("Messi", this, 10));
+		Thread b2 = new Thread(new Barista("Ronaldo", this, 10));
 
-        b1.start();
-        b2.start();
-    }
+		b1.start();
+		b2.start();
+	}
 
-    public static synchronized CoffeeShop getInstance() {
-        if (instance == null) {
-            instance = new CoffeeShop();
-        }
-        return instance;
-    }
+	public static synchronized CoffeeShop getInstance() {
+		if (instance == null) {
+			instance = new CoffeeShop();
+		}
+		return instance;
+	}
 
-    // =========================
-    // ORDER SYSTEM
-    // =========================
-    public void placeOrder(Order order) {
+	// =========================
+	// TEST SUPPORT
+	// =========================
+	public void resetForTests() {
+		orderQueue = new OrderQueue();
+		coffeeFactory = new CoffeeFactory();
+		counter = new AtomicInteger(1);
+	}
 
-        System.out.println(order.getCustomer().getName()
-                + " placed order #" + order.getOrderId());
+	// =========================
+	// ORDER SYSTEM
+	// =========================
+	public void placeOrder(Order order) {
 
-        orderQueue.addOrder(order);
-    }
+		if (order == null || order.getCustomer() == null)
+			return;
 
-    public Order takeOrder() {
-        return orderQueue.getOrder();
-    }
+		System.out.println(order.getCustomer().getName() + " placed order #" + order.getOrderId());
 
-    // =========================
-    // CHAT SYSTEM
-    // =========================
-    public synchronized String sendChatMessage(String sender, String message) {
+		orderQueue.addOrder(order);
+	}
 
-        DatabaseUtil.saveMessage(sender, message);
-        System.out.println(sender + ": " + message);
+	public Order takeOrder() {
+		return orderQueue.getOrder();
+	}
 
-        String lower = message.toLowerCase();
-        String reply;
+	// =========================
+	// CHAT SYSTEM
+	// =========================
+	public synchronized String sendChatMessage(String sender, String message) {
 
-        if (lower.startsWith("order")) {
+		DatabaseUtil.saveMessage(sender, message);
+		System.out.println(sender + ": " + message);
 
-            String type = message.replace("order", "").trim();
+		if (message == null || message.isBlank()) {
+			return "Hello! How can I help you today?";
+		}
 
-            Coffee coffee = coffeeFactory.createCoffee(type);
+		String trimmed = message.trim();
+		String lower = trimmed.toLowerCase();
 
-            int id = counter.getAndIncrement();
+		String reply;
 
-            Order order = new Order(
-                    id,
-                    new Customer(sender, new GoldPricing(), this, coffee, id),
-                    coffee
-            );
+		if (lower.startsWith("order")) {
 
-            placeOrder(order);
+			String type = trimmed.substring(5).trim().toLowerCase();
 
-            reply = "Your " + type + " order has been placed!";
+			if (type.isBlank()) {
+				reply = "Invalid order request!";
+			} else {
+				try {
+					Coffee coffee = coffeeFactory.createCoffee(type);
 
-        } else {
+					int id = counter.getAndIncrement();
 
-            reply = "Hello! How can I help you today?";
-        }
+					Order order = new Order(id, new Customer(sender, new GoldPricing(), this, coffee, id), coffee);
 
-        DatabaseUtil.saveMessage("Barista", reply);
-        System.out.println("Barista: " + reply);
+					placeOrder(order);
 
-        return reply;
-    }
+					reply = "Your " + type + " order has been placed!";
+
+				} catch (Exception e) {
+					reply = "Invalid order request!";
+				}
+			}
+
+		} else {
+			reply = "Hello! How can I help you today?";
+		}
+
+		DatabaseUtil.saveMessage("Barista", reply);
+		System.out.println("Barista: " + reply);
+
+		return reply;
+	}
 }

@@ -20,7 +20,7 @@ public class Barista implements Runnable {
 	public void run() {
 		for (int i = 0; i < maxOrders; i++) {
 
-			Order order = coffeeShop.takeOrder();
+			Order order = coffeeShop.waitForOrder();
 
 			if (order == null)
 				continue;

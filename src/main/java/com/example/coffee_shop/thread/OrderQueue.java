@@ -14,11 +14,16 @@ public class OrderQueue {
 	}
 
 	public synchronized Order getOrder() {
+		return queue.poll();
+	}
+
+	public synchronized Order waitForOrder() {
 		while (queue.isEmpty()) {
 			try {
 				wait();
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
+				return null;
 			}
 		}
 		return queue.poll();

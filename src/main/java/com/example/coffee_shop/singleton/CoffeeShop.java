@@ -31,6 +31,10 @@ public class CoffeeShop {
 
 		Thread b1 = new Thread(new Barista("Messi", this, 10));
 		Thread b2 = new Thread(new Barista("Ronaldo", this, 10));
+		b1.setDaemon(true);
+		b2.setDaemon(true);
+		b1.setName("Barista-Messi");
+		b2.setName("Barista-Ronaldo");
 
 		b1.start();
 		b2.start();
@@ -67,6 +71,10 @@ public class CoffeeShop {
 
 	public Order takeOrder() {
 		return orderQueue.getOrder();
+	}
+
+	public Order waitForOrder() {
+		return orderQueue.waitForOrder();
 	}
 
 	// =========================

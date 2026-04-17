@@ -7,6 +7,9 @@ import com.example.coffee_shop.decorator.Latte;
 
 public class CoffeeFactory {
 	public Coffee createCoffee(String type) {
+		if (type == null || type.isBlank()) {
+			throw new IllegalArgumentException("Unknown coffee type");
+		}
 		if (type.equalsIgnoreCase("espresso")) {
 			return new Espresso();
 		} else if (type.equalsIgnoreCase("latte")) {
